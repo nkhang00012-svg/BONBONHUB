@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BONBON HUB — Premium Multi-Platform Script Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════
+   ROOT VARIABLES (NEON CYBERPUNK)
+════════════════════════════════════ */
+:root {
+  --orange: #ff4500; --o2: rgba(255, 69, 0, 0.45); --o3: rgba(255, 69, 0, 0.08);
+  --green: #00ffa3;  --g2: rgba(0, 255, 163, 0.4);  --g3: rgba(0, 255, 163, 0.08);
+  --blue: #00cfff;   --b2: rgba(0, 207, 255, 0.4);  --b3: rgba(0, 207, 255, 0.08);
+  --bg: #03050d; --bg2: #070b19; --bg3: #0c1326;
+  --border: rgba(255, 255, 255, 0.06);
+  --text: #eef2ff; --muted: #64748b;
+  --accent: var(--orange); --aglow: var(--o2); --adim: var(--o3);
+}
+
+/* ════ RESET & BASE ════ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; overflow-x: hidden;
+  cursor: none;
+}
+
+/* ════ INTENSE CUSTOM CURSOR ════ */
+#cursor { position: fixed; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); pointer-events: none; z-index: 99999; transform: translate(-50%, -50%); transition: width .15s, height .15s, background .2s; mix-blend-mode: screen; }
+#cursor-ring { position: fixed; width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--accent); pointer-events: none; z-index: 99998; transform: translate(-50%, -50%); transition: transform .06s linear, width .2s, height .2s, border-color .2s, opacity .2s; opacity: .7; box-shadow: 0 0 10px var(--aglow); }
+#cursor.click { width: 16px; height: 16px; background: #fff; }
+#cursor-ring.click { width: 55px; height: 55px; opacity: .4; border-color: #fff; }
+a, button, select, input, textarea { cursor: none; }
+
+/* ════ BACKGROUND MATRIX VFX ════ */
+#vfx-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -3; pointer-events: none; }
+.bg-grid {
+  position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 50px 50px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, #000 20%, transparent 100%);
+}
+.bg-vignette { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse 110% 110% at 50% 50%, transparent 30%, var(--bg) 100%); }
+
+.scanline {
+  position: fixed; left: 0; width: 100%; height: 4px; pointer-events: none; z-index: 9997;
+  background: linear-gradient(90deg, transparent 0%, var(--accent) 30%, rgba(255,255,255,0.9) 50%, var(--accent) 70%, transparent 100%);
+  opacity: 0.12; animation: scan 7s linear infinite;
+}
+@keyframes scan { 0% { top: -4px } 100% { top: 100vh } }
+
+/* ════ GLITCH ANIMATIONS ════ */
+@keyframes glitch1 { 0%, 92%, 100% { clip-path: none; transform: none; } 94% { clip-path: polygon(0 15%, 100% 15%, 100% 30%, 0 30%); transform: translate(-4px, -2px); } 96% { clip-path: polygon(0 70%, 100% 70%, 100% 85%, 0 85%); transform: translate(4px, 2px); } 98% { clip-path: none; transform: none; } }
+@keyframes glitch2 { 0%, 93%, 100% { opacity: 0; } 94% { opacity: 0.7; clip-path: polygon(0 35%, 100% 35%, 100% 50%, 0 50%); transform: translate(5px, 0); color: var(--blue); } 96% { opacity: 0.5; clip-path: polygon(0 5%, 100% 5%, 100% 18%, 0 18%); transform: translate(-5px, 0); color: var(--green); } 98% { opacity: 0; } }
+
+/* ════ MODAL GLOW LUXURY ════ */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(3, 4, 10, 0.95);
+  backdrop-filter: blur(20px); display: flex; justify-content: center; align-items: center;
+  z-index: 9000; opacity: 0; visibility: hidden;
+  transition: opacity .4s cubic-bezier(.16, 1, .3, 1), visibility .4s;
+}
+.modal-overlay.active { opacity: 1; visibility: visible; }
+.custom-modal {
+  background: linear-gradient(145deg, var(--bg2), var(--bg3));
+  border: 1px solid var(--aglow); padding: 40px; border-radius: 24px;
+  max-width: 550px; width: 92%;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.03), 0 0 60px var(--adim), 0 35px 70px rgba(0,0,0,0.7);
+  max-height: 90vh; overflow-y: auto;
+  transform: translateY(40px) scale(0.95);
+  transition: transform .4s cubic-bezier(.16, 1, .3, 1);
+  position: relative;
+}
+.modal-overlay.active .custom-modal { transform: translateY(0) scale(1); }
+.custom-modal h2 { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; color: #fff; text-align: center; margin-bottom: 10px; letter-spacing: 0.08em; text-shadow: 0 0 15px var(--accent); }
+.custom-modal p { color: var(--muted); font-size: 14px; margin-bottom: 24px; text-align: center; font-weight: 500; }
+
+/* SEARCHABLE LANG SELECTION SYSTEM */
+.lang-search-box { position: relative; margin-bottom: 15px; }
+.lang-search-box input { width: 100%; padding: 12px 16px 12px 40px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; color: #fff; outline: none; font-family: 'Rajdhani', sans-serif; font-size: 15px; }
+.lang-search-box input:focus { border-color: var(--accent); }
+.lang-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.lang-grid-scroll { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 350px; overflow-y: auto; padding-right: 4px; }
+.lang-grid-scroll::-webkit-scrollbar { width: 5px; }
+.lang-grid-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+.lang-btn {
+  background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text);
+  padding: 12px; font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 600;
+  border-radius: 12px; display: flex; align-items: center; justify-content: flex-start; gap: 10px;
+  transition: all 0.25s cubic-bezier(.16, 1, .3, 1); width: 100%; text-align: left;
+}
+.lang-btn:hover { border-color: var(--accent); transform: translateY(-2px); background: rgba(255,255,255,0.06); color: #fff; }
+
+/* FORM CONTROLS */
+.adm-fg { margin-bottom: 16px; text-align: left; }
+.adm-fg label { display: block; font-size: 11px; font-weight: 700; letter-spacing: .1em; color: #94a3b8; margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; }
+.adm-fg input, .adm-fg textarea, .adm-fg select {
+  width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border); border-radius: 12px; color: #fff;
+  font-family: 'Rajdhani', sans-serif; font-size: 15px; outline: none; transition: all .25s;
+}
+.adm-fg input:focus, .adm-fg textarea:focus, .adm-fg select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--adim); background: rgba(255,255,255,0.07); }
+.adm-fg select option { background: var(--bg2); color: #fff; }
+.adm-fg input[type=file] { padding: 10px; background: rgba(255,255,255,0.02); }
+.form-sep { text-align: center; color: #334155; font-size: 11px; font-weight: 700; margin: 14px 0; letter-spacing: 0.12em; }
+.fsb { width: 100%; padding: 14px; border: none; border-radius: 12px; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 15px; margin-top: 8px; letter-spacing: .05em; transition: all .3s cubic-bezier(.16, 1, .3, 1); }
+.fsb-green { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+.fsb-green:hover { box-shadow: 0 12px 25px rgba(16,185,129,0.35); transform: translateY(-2px); }
+.fsb-red { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
+.fsb-red:hover { box-shadow: 0 12px 25px rgba(239,68,68,0.35); transform: translateY(-2px); }
+.fsb-blue { background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; }
+.fsb-blue:hover { box-shadow: 0 12px 25px rgba(2,132,199,0.35); transform: translateY(-2px); }
+.fsb-gray { background: rgba(255,255,255,0.06); color: #94a3b8; border: 1px solid var(--border); }
+.fsb-gray:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+/* ════ NAVBAR ════ */
+.navbar {
+  background: rgba(3, 5, 13, 0.85); backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  padding: 0 6%; height: 70px; display: flex; justify-content: space-between; align-items: center;
+  position: sticky; top: 0; z-index: 500;
+}
+.navbar::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%); opacity: 0.4; }
+.logo { font-family: 'Orbitron', monospace; font-size: 24px; font-weight: 900; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 10px; letter-spacing: .05em; }
+.logo span { color: var(--orange); text-shadow: 0 0 15px var(--orange); }
+.logo-pulse { width: 9px; height: 9px; border-radius: 50%; background: var(--orange); animation: lpulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; box-shadow: 0 0 10px var(--orange); }
+@keyframes lpulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.35); opacity: 0.6; box-shadow: 0 0 18px var(--orange); } }
+
+.nav-links { display: flex; list-style: none; gap: 6px; }
+.nav-links a { color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 15px; padding: 8px 16px; border-radius: 10px; transition: all 0.25s; letter-spacing: .02em; }
+.nav-links a:hover { color: #fff; background: rgba(255,255,255,0.03); }
+
+.right-cluster { display: flex; gap: 10px; align-items: center; }
+.nbtn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: #fff; padding: 8px 16px; border-radius: 10px; font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 700; transition: all 0.25s; letter-spacing: .04em; }
+.nbtn:hover { border-color: var(--accent); background: var(--adim); box-shadow: 0 0 15px var(--aglow); }
+#adminControls { display: none; gap: 8px; }
+.nbtn-green { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.3); color: #10b981; }
+.nbtn-red { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); color: #ef4444; }
+.mob-toggle { display: none; background: transparent; border: none; color: #fff; padding: 6px; }
+
+/* ════ PREMIUM TABS ════ */
+.tabs-row { display: flex; gap: 8px; padding: 30px 6% 0; position: relative; }
+.tab-btn {
+  padding: 12px 26px; border-radius: 14px 14px 0 0;
+  font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 15px;
+  border: 1px solid var(--border); border-bottom: none;
+  color: #64748b; background: var(--bg2);
+  transition: all .35s cubic-bezier(.16, 1, .3, 1);
+  letter-spacing: .03em; display: flex; align-items: center; gap: 10px;
+  position: relative; top: 1px;
+}
+.tab-btn:hover { color: #e2e8f0; background: rgba(255,255,255,0.02); }
+.tab-btn.active { background: var(--bg3); color: #fff; border-color: var(--accent); box-shadow: 0 -8px 20px var(--adim); }
+.tab-dot { width: 8px; height: 8px; border-radius: 50%; }
+.tab-roblox .tab-dot { background: var(--orange); box-shadow: 0 0 8px var(--orange); }
+.tab-mcscript .tab-dot { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.tab-mcapp .tab-dot { background: var(--blue); box-shadow: 0 0 8px var(--blue); }
+
+/* ════ MAIN PACK SHELL ════ */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; animation: panelFade .5s cubic-bezier(.16, 1, .3, 1) both; }
+@keyframes panelFade { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
+
+.content-shell {
+  margin: 0 6% 60px; background: linear-gradient(165deg, var(--bg3) 0%, var(--bg2) 100%);
+  border: 1px solid var(--border); border-radius: 0 20px 20px 20px;
+  padding: 45px; position: relative;
+}
+.content-shell::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); }
+
+/* HERO HEROICS */
+.hero-sec { text-align: center; margin-bottom: 40px; }
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--adim); border: 1px solid var(--aglow); color: var(--accent);
+  padding: 6px 16px; border-radius: 100px; font-size: 11px; font-weight: 700; letter-spacing: .12em; margin-bottom: 20px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.hero-title-wrap { position: relative; display: inline-block; }
+.hero-h2 { font-family: 'Orbitron', monospace; font-size: 34px; font-weight: 900; color: #fff; margin-bottom: 14px; letter-spacing: .02em; text-shadow: 0 0 30px var(--adim); animation: glitch1 7s infinite; }
+.hero-h2-clone { position: absolute; inset: 0; font-family: 'Orbitron', monospace; font-size: 34px; font-weight: 900; color: var(--accent); letter-spacing: .02em; animation: glitch2 7s infinite; pointer-events: none; }
+.hero-p { color: #94a3b8; font-size: 16px; font-weight: 500; max-width: 600px; margin: 0 auto; line-height: 1.6; }
+
+/* STATS */
+.stats-bar { display: flex; gap: 12px; margin-bottom: 30px; flex-wrap: wrap; }
+.stat-pill { background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 8px 16px; border-radius: 10px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: #94a3b8; font-family: 'JetBrains Mono', monospace; }
+.stat-pill b { color: #fff; }
+.stat-led { width: 6px; height: 6px; border-radius: 50%; }
+.led-o { background: var(--orange); box-shadow: 0 0 8px var(--orange); }
+.led-g { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.led-b { background: var(--blue); box-shadow: 0 0 8px var(--blue); }
+
+/* SEARCH */
+.search-row { display: flex; gap: 12px; margin-bottom: 35px; }
+.search-wrap { position: relative; flex: 1; }
+.search-wrap input { width: 100%; padding: 14px 18px 14px 48px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 14px; color: #fff; font-family: 'Rajdhani', sans-serif; font-size: 15px; outline: none; transition: all .25s; }
+.search-wrap input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--adim); background: rgba(255,255,255,0.06); }
+.search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #64748b; pointer-events: none; }
+.hot-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: #64748b; padding: 0 22px; border-radius: 14px; font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; transition: all .25s; }
+.hot-btn:hover, .hot-btn.active { border-color: var(--accent); color: #fff; background: var(--adim); box-shadow: 0 0 15px var(--aglow); }
+
+/* ════ SCRIPTS GRID ════ */
+.scripts-grid { display: flex; flex-direction: column; gap: 26px; margin-bottom: 40px; }
+.scard {
+  background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+  border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
+  transition: all .4s cubic-bezier(.16, 1, .3, 1); position: relative;
+  animation: cardIn .5s cubic-bezier(.16, 1, .3, 1) both;
+}
+@keyframes cardIn { 0% { opacity: 0; transform: translateY(25px); } 100% { opacity: 1; transform: translateY(0); } }
+.scard:hover { transform: translateY(-6px); border-color: var(--aglow); box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 30px var(--adim); }
+
+.scard-inner { display: flex; }
+.scard-img-col { flex-shrink: 0; width: 240px; height: 185px; position: relative; overflow: hidden; background: #000; }
+.scard-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .6s cubic-bezier(.16, 1, .3, 1); filter: brightness(0.88); }
+.scard:hover .scard-img { transform: scale(1.08); filter: brightness(1); }
+.scard-img-overlay { position: absolute; inset: 0; background: linear-gradient(90deg, transparent 50%, var(--bg3) 100%); }
+.no-img-col { background: linear-gradient(135deg, var(--bg3), var(--bg2)); display: flex; align-items: center; justify-content: center; font-size: 50px; }
+
+.scard-body { flex: 1; padding: 26px 30px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; }
+.scard-badges { display: flex; gap: 8px; }
+.sbadge { padding: 4px 12px; border-radius: 8px; font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace; letter-spacing: .08em; border: 1px solid; }
+.sbadge-main { background: var(--adim); color: var(--accent); border-color: var(--aglow); }
+.sbadge-hot { background: rgba(239,68,68,0.1); color: #ff6b6b; border-color: rgba(239,68,68,0.25); }
+.scard-title { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 700; color: #fff; line-height: 1.3; }
+.scard-desc { color: #94a3b8; font-size: 14px; line-height: 1.6; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+.copy-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: linear-gradient(135deg, rgba(2,132,199,0.2), rgba(3,105,161,0.1));
+  border: 1px solid rgba(2,132,199,0.35); color: var(--blue);
+  padding: 12px; border-radius: 12px; font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 700;
+  letter-spacing: .04em; transition: all .3s; justify-content: center; width: 100%; max-width: 180px; margin-top: auto;
+}
+.copy-btn:hover { background: rgba(0, 207, 255, 0.18); box-shadow: 0 8px 20px rgba(0,207,255,0.2); transform: translateY(-2px); border-color: var(--blue); }
+.copy-btn.copied { background: rgba(16,185,129,0.15); border-color: var(--green); color: var(--green); box-shadow: 0 8px 20px rgba(0,255,163,0.2); }
+
+/* ════ APPS CARD GRID ════ */
+.apps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; margin-bottom: 40px; }
+.acard { background: linear-gradient(160deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; transition: all .4s cubic-bezier(.16, 1, .3, 1); position: relative; }
+.acard:hover { transform: translateY(-7px); border-color: rgba(0,207,255,0.35); box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 25px var(--b3); }
+.acard-banner-wrap { width: 100%; height: 175px; overflow: hidden; position: relative; background: #000; }
+.acard-banner { width: 100%; height: 100%; object-fit: cover; transition: transform .5s cubic-bezier(.16, 1, .3, 1); filter: brightness(0.9); }
+.acard:hover .acard-banner { transform: scale(1.06); filter: brightness(1); }
+.acard-banner-overlay { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to top, var(--bg3), transparent); }
+.acard-no-img { width: 100%; height: 175px; background: linear-gradient(135deg, var(--bg3), var(--bg2)); display: flex; align-items: center; justify-content: center; font-size: 55px; }
+.acard-body { padding: 24px; }
+.acard-ver { background: var(--b3); color: var(--blue); border: 1px solid var(--b2); padding: 3px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace; display: inline-block; margin-bottom: 10px; }
+.acard-title { font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.acard-desc { color: #94a3b8; font-size: 13px; line-height: 1.6; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; height: 62px; }
+.dl-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; background: rgba(0,207,255,0.1); border: 1px solid rgba(0,207,255,0.25); color: var(--blue); font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 700; border-radius: 12px; transition: all 0.25s; text-decoration: none; }
+.dl-btn:hover { background: rgba(0,207,255,0.2); box-shadow: 0 8px 20px var(--b2); transform: translateY(-2px); border-color: var(--blue); }
+
+/* GUIDES */
+.guide-box { background: rgba(255,255,255,0.015); border: 1px solid var(--border); border-radius: 18px; padding: 35px; margin-top: 50px; }
+.guide-title { font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid var(--border); letter-spacing: .02em; }
+.guide-step { margin-bottom: 20px; padding-left: 46px; position: relative; }
+.guide-step::before { content: attr(data-step); position: absolute; left: 0; top: 0; width: 30px; height: 30px; background: var(--adim); color: var(--accent); border: 1px solid var(--aglow); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; }
+.guide-step h4 { font-size: 16px; color: #fff; margin-bottom: 4px; }
+.guide-step p { font-size: 13.5px; color: #94a3b8; line-height: 1.6; }
+.note-box { background: var(--adim); border-left: 3px solid var(--accent); padding: 16px 20px; border-radius: 0 12px 12px 0; margin-top: 24px; font-size: 13.5px; color: #cbd5e1; }
+
+/* STATE BLOCKS */
+.empty { text-align: center; padding: 60px 20px; color: #64748b; }
+.empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+.loader-wrap { text-align: center; padding: 60px; }
+.loader { display: inline-block; width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg) } }
+
+.tr-status { display: inline-flex; align-items: center; gap: 8px; background: rgba(0,255,163,0.06); border: 1px solid rgba(0,255,163,0.18); color: var(--green); padding: 6px 14px; border-radius: 8px; font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace; letter-spacing: .05em; margin-bottom: 20px; opacity: 0; transition: opacity .3s; pointer-events: none; }
+.tr-status.show { opacity: 1; }
+.tr-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: ledpulse 1s infinite; }
+
+.footer { text-align: center; padding: 30px; color: #475569; font-size: 12px; border-top: 1px solid var(--border); letter-spacing: .05em; font-family: 'JetBrains Mono', monospace; background: #020308; }
+.footer span { color: var(--orange); }
+
+/* RESPONSIVE CONTROL MAP */
+@media(max-width:960px){
+  .scard-img-col { width: 190px; height: 185px; }
+}
+@media(max-width:768px) {
+  body { cursor: auto; }
+  #cursor, #cursor-ring { display: none; }
+  .navbar { padding: 0 20px; }
+  .nav-links { display: none; position: absolute; top: 70px; left: 0; width: 100%; background: var(--bg2); flex-direction: column; padding: 16px; gap: 6px; border-bottom: 1px solid var(--border); }
+  .nav-links.mob-open { display: flex; }
+  .mob-toggle { display: block; }
+  .tabs-row { padding: 20px 20px 0; overflow-x: auto; flex-wrap: nowrap; }
+  .tab-btn { padding: 10px 16px; font-size: 13.5px; white-space: nowrap; }
+  .content-shell { margin: 0 16px 40px; padding: 26px 20px; }
+  .scard-inner { flex-direction: column; }
+  .scard-img-col { width: 100%; height: 210px; }
+  .scard-img-overlay { background: linear-gradient(to top, var(--bg3) 0%, transparent 100%); }
+  .apps-grid { grid-template-columns: 1fr; }
+  .hero-h2, .hero-h2-clone { font-size: 24px; }
+  .copy-btn { max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<canvas id="vfx-canvas"></canvas>
+<div class="bg-grid"></div>
+<div class="bg-vignette"></div>
+<div class="scanline"></div>
+
+<div class="modal-overlay" id="globalModal">
+  <div class="custom-modal" id="modalContent"></div>
+</div>
+
+<nav class="navbar">
+  <a href="#" class="logo" onclick="resetFilters(event)">
+    <div class="logo-pulse"></div>
+    BONBON <span>HUB</span>
+  </a>
+  <button class="mob-toggle" onclick="toggleMob()">
+    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#" id="navHome" onclick="resetFilters(event)">Home</a></li>
+    <li><a href="#" id="navHot" onclick="triggerHot(event)">Hot Scripts</a></li>
+    <li><a href="#guide-area" id="navGuide" onclick="closeMob()">Guide</a></li>
+  </ul>
+  <div class="right-cluster">
+    <div id="adminControls">
+      <button class="nbtn nbtn-green" onclick="openPostModal()">➕ Post</button>
+      <button class="nbtn nbtn-red" onclick="openDeleteModal()">➖ Delete</button>
+    </div>
+    <button class="nbtn" id="loginBtn" onclick="openLoginModal()">🔑 Admin</button>
+    <button class="nbtn" onclick="showLangModal()">🌐 Language</button>
+  </div>
+</nav>
+
+<div class="tabs-row">
+  <button class="tab-btn tab-roblox active" onclick="switchTab('roblox',this)">
+    <div class="tab-dot"></div><span id="tabLblRoblox">🎮 Roblox Script</span>
+  </button>
+  <button class="tab-btn tab-mcscript" onclick="switchTab('mc-script',this)">
+    <div class="tab-dot"></div><span id="tabLblMcScript">⛏️ Minecraft Script</span>
+  </button>
+  <button class="tab-btn tab-mcapp" onclick="switchTab('mc-app',this)">
+    <div class="tab-dot"></div><span id="tabLblMcApp">📦 Minecraft App</span>
+  </button>
+</div>
+
+<div class="tab-panel active" id="panel-roblox">
+  <div class="content-shell" style="--accent:var(--orange);--aglow:var(--o2);--adim:var(--o3)">
+    <div class="hero-sec">
+      <div class="hero-tag"><span class="stat-led led-o"></span><span id="heroTagR">ROBLOX SCRIPTS</span></div>
+      <div class="hero-title-wrap">
+        <h2 class="hero-h2" id="heroTitleR">The Best Roblox Script Hub</h2>
+        <div class="hero-h2-clone" aria-hidden="true" id="heroTitleRClone">The Best Roblox Script Hub</div>
+      </div>
+      <p class="hero-p" id="heroDescR">High quality, safe and continuously updated scripts.</p>
+    </div>
+    <div id="trStatusR" class="tr-status"><div class="tr-dot"></div><span id="trStatusRTxt">TRANSLATING...</span></div>
+    <div class="stats-bar" id="statsR"></div>
+    <div class="search-row">
+      <div class="search-wrap">
+        <svg class="search-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" id="searchR" oninput="filterR()" placeholder="Search game name or feature...">
+      </div>
+      <button class="hot-btn" id="hotBtnR" onclick="toggleHotR()">🔥 <span id="hotBtnRTxt">Hot</span></button>
+    </div>
+    <div class="scripts-grid" id="containerR"><div class="loader-wrap"><div class="loader"></div></div></div>
+    
+    <div class="guide-box" id="guide-area" style="--accent:var(--orange);--aglow:var(--o2);--adim:var(--o3)">
+      <div class="guide-title" id="gTitle">📖 General Usage Guide</div>
+      <div class="guide-step" data-step="1"><h4 id="gS1T">Step 1: Copy Script</h4><p id="gS1D">Click the copy button on the script card you want to use.</p></div>
+      <div class="guide-step" data-step="2"><h4 id="gS2T">Step 2: Open Executor</h4><p id="gS2D">Launch Roblox and open your Executor tool on PC or Mobile.</p></div>
+      <div class="guide-step" data-step="3"><h4 id="gS3T">Step 3: Execute</h4><p id="gS3D">Paste code into the editor and press Execute or Run.</p></div>
+      <div class="guide-step" data-step="4"><h4 id="gS4T">Step 4: Use the Menu</h4><p id="gS4D">The script UI Menu will appear inside the game.</p></div>
+      <div class="note-box" id="gNote"><b>📌 Note:</b> Different scripts may have different toggle keys. Read descriptions carefully.</div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-panel" id="panel-mc-script">
+  <div class="content-shell" style="--accent:var(--green);--aglow:var(--g2);--adim:var(--g3)">
+    <div class="hero-sec">
+      <div class="hero-tag"><span class="stat-led led-g"></span><span>MINECRAFT SCRIPTS</span></div>
+      <div class="hero-title-wrap">
+        <h2 class="hero-h2">Minecraft Script Collection</h2>
+        <div class="hero-h2-clone" aria-hidden="true">Minecraft Script Collection</div>
+      </div>
+      <p class="hero-p">High quality scripts for Minecraft Java &amp; Bedrock.</p>
+    </div>
+    <div id="trStatusMC" class="tr-status"><div class="tr-dot"></div><span>TRANSLATING...</span></div>
+    <div class="stats-bar" id="statsMC"></div>
+    <div class="search-row">
+      <div class="search-wrap">
+        <svg class="search-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" id="searchMC" oninput="filterMC()" placeholder="Search Minecraft scripts...">
+      </div>
+      <button class="hot-btn" id="hotBtnMC" onclick="toggleHotMC()">🔥 <span>Hot</span></button>
+    </div>
+    <div class="scripts-grid" id="containerMC"><div class="loader-wrap"><div class="loader"></div></div></div>
+    
+    <div class="guide-box" style="--accent:var(--green);--aglow:var(--g2);--adim:var(--g3)">
+      <div class="guide-title">⛏️ Minecraft Script Guide</div>
+      <div class="guide-step" data-step="1"><h4>Step 1: Copy Script</h4><p>Click the copy button on the script you want.</p></div>
+      <div class="guide-step" data-step="2"><h4>Step 2: Open Injection Tool</h4><p>Open Minecraft &amp; your executor/injector (Meteor Client, Vape, etc.).</p></div>
+      <div class="guide-step" data-step="3"><h4>Step 3: Execute</h4><p>Paste code into the console and press Run or Execute.</p></div>
+      <div class="guide-step" data-step="4"><h4>Step 4: Use Features</h4><p>The mod/script menu will appear in-game for configuration.</p></div>
+      <div class="note-box"><b>📌 Note:</b> Use in private or non-competitive servers to avoid bans.</div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-panel" id="panel-mc-app">
+  <div class="content-shell" style="--accent:var(--blue);--aglow:var(--b2);--adim:var(--b3)">
+    <div class="hero-sec">
+      <div class="hero-tag"><span class="stat-led led-b"></span><span>MINECRAFT APPS</span></div>
+      <div class="hero-title-wrap">
+        <h2 class="hero-h2">Minecraft App &amp; Mod Hub</h2>
+        <div class="hero-h2-clone" aria-hidden="true">Minecraft App &amp; Mod Hub</div>
+      </div>
+      <p class="hero-p">Apps, mods &amp; tools curated for Minecraft players.</p>
+    </div>
+    <div id="trStatusApp" class="tr-status"><div class="tr-dot"></div><span>TRANSLATING...</span></div>
+    <div class="stats-bar" id="statsApp"></div>
+    <div class="search-row">
+      <div class="search-wrap">
+        <svg class="search-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" id="searchApp" oninput="filterApp()" placeholder="Search apps or mods...">
+      </div>
+    </div>
+    <div class="apps-grid" id="containerApp"><div class="loader-wrap"><div class="loader"></div></div></div>
+    
+    <div class="guide-box" style="--accent:var(--blue);--aglow:var(--b2);--adim:var(--b3)">
+      <div class="guide-title">📦 Minecraft App Guide</div>
+      <div class="guide-step" data-step="1"><h4>Step 1: Browse</h4><p>Find the app or mod that suits your needs.</p></div>
+      <div class="guide-step" data-step="2"><h4>Step 2: Download</h4><p>Click the download button to go to the official release page.</p></div>
+      <div class="guide-step" data-step="3"><h4>Step 3: Install</h4><p>Follow the installation guide provided by the app developer.</p></div>
+      <div class="note-box"><b>📌 Note:</b> Always download from trusted sources. Verify checksums when available.</div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">⚡ BONBON <span>HUB</span> — POWERED BY FIREBASE CLOUD — UPDATED CONTINUOUSLY</footer>
+
+<script>
+/* ═══════════════════════════════════════════
+   VFX LIVE MOTION ENGINE & INTERACTIVE CLICK
+═══════════════════════════════════════════ */
+(function(){
+  const canvas=document.getElementById('vfx-canvas');
+  const ctx=canvas.getContext('2d');
+  let W, H, particles=[], mouseX=0, mouseY=0;
+  function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
+  resize(); window.addEventListener('resize',resize);
+  
+  const COLORS=['rgba(255,69,0,','rgba(0,255,163,','rgba(0,207,255,'];
+  class Particle{
+    constructor(){this.reset(true);}
+    reset(init){
+      this.x=Math.random()*W;
+      this.y=init?Math.random()*H:H+10;
+      this.vx=(Math.random()-.5)*0.5;
+      this.vy=-(Math.random()*0.5+0.2);
+      this.r=Math.random()*1.8+0.4;
+      this.alpha=Math.random()*0.6+0.1;
+      this.color=COLORS[Math.floor(Math.random()*COLORS.length)];
+      this.life=1; this.decay=Math.random()*0.0025+0.0008;
+    }
+    update(){
+      this.x+=this.vx; this.y+=this.vy;
+      this.life-=this.decay;
+      if(this.y<-5||this.life<=0)this.reset(false);
+    }
+    draw(){
+      ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+      ctx.fillStyle=this.color+this.alpha+')'; ctx.fill();
+    }
+  }
+  for(let i=0;i<125;i++)particles.push(new Particle());
+  
+  function drawConnections(){
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        const dx=particles[i].x-particles[j].x;
+        const dy=particles[i].y-particles[j].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<95){
+          const a=(1-d/95)*0.07;
+          ctx.beginPath(); ctx.moveTo(particles[i].x,particles[i].y); ctx.lineTo(particles[j].x,particles[j].y);
+          ctx.strokeStyle='rgba(255,255,255,'+a+')'; ctx.lineWidth=0.45; ctx.stroke();
+        }
+      }
+    }
+  }
+  
+  window.addEventListener('mousemove',e=>{mouseX=e.clientX;mouseY=e.clientY;});
+  window.addEventListener('click',()=>{
+    for(let i=0;i<15;i++){
+      const p=new Particle(); p.x=mouseX; p.y=mouseY;
+      const angle=Math.random()*Math.PI*2; const speed=Math.random()*2.5+1.2;
+      p.vx=Math.cos(angle)*speed; p.vy=Math.sin(angle)*speed;
+      p.r=Math.random()*2.8+0.8; p.alpha=1; particles.push(p);
+    }
+    if(particles.length>220)particles.splice(0,15);
+  });
+  
+  function raf(){ ctx.clearRect(0,0,W,H); drawConnections(); particles.forEach(p=>{p.update();p.draw();}); requestAnimationFrame(raf); }
+  raf();
+})();
+
+/* ═══════════════════════════════════════════
+   DYNAMIC INTEGRATED CURSOR SYSTEM
+═══════════════════════════════════════════ */
+(function(){
+  const dot=document.getElementById('cursor'), ring=document.getElementById('cursor-ring');
+  let mx=0, my=0, rx=0, ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX; my=e.clientY; dot.style.left=mx+'px'; dot.style.top=my+'px';});
+  function animRing(){ rx+=(mx-rx)*0.14; ry+=(my-ry)*0.14; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(animRing); } animRing();
+  document.addEventListener('mousedown',()=>{dot.classList.add('click');ring.classList.add('click');});
+  document.addEventListener('mouseup',()=>{dot.classList.remove('click');ring.classList.remove('click');});
+  
+  function applySelectors(){
+    document.querySelectorAll('a,button,select,input,textarea,.lang-btn,.tab-btn,.copy-btn,.dl-btn,.hot-btn,.nbtn,.fsb').forEach(el=>{
+      el.addEventListener('mouseenter',()=>{dot.style.width='14px';dot.style.height='14px';ring.style.width='52px';ring.style.height='52px';dot.style.background='var(--accent)';});
+      el.addEventListener('mouseleave',()=>{dot.style.width='8px';dot.style.height='8px';ring.style.width='40px';ring.style.height='40px';});
+    });
+  }
+  window.refreshCursorSelectors = applySelectors;
+  applySelectors();
+})();
+
+/* ═══════════════════════════════════════════
+   FIREBASE CLOUD DATABASE OPERATIONS
+═══════════════════════════════════════════ */
+const FB_ROBLOX = "https://bonbonhub-default-rtdb.asia-southeast1.firebasedatabase.app/scripts.json";
+const FB_MCSCRIPT = "https://bonbonhub-default-rtdb.asia-southeast1.firebasedatabase.app/mc_scripts.json";
+const FB_MCAPP = "https://bonbonhub-default-rtdb.asia-southeast1.firebasedatabase.app/mc_apps.json";
+
+let robloxData=[], mcScriptData=[], mcAppData=[];
+let currentLang='en';
+let isAdmin=false;
+let hotR=false, hotMC=false;
+let translatedRoblox=[], translatedMC=[], translatedApp=[];
+
+async function fbGet(url){
+  const r=await fetch(url); const d=await r.json();
+  if(!d)return [];
+  return Object.keys(d).map(k=>({cloudId:k,...d[k]}));
+}
+async function fbPost(url,obj){
+  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
+  return r.ok;
+}
+async function fbDelete(url){ const r=await fetch(url,{method:'DELETE'}); return r.ok; }
+
+async function loadAll(){
+  try{
+    [robloxData,mcScriptData,mcAppData]=await Promise.all([fbGet(FB_ROBLOX),fbGet(FB_MCSCRIPT),fbGet(FB_MCAPP)]);
+  }catch(e){robloxData=[];mcScriptData=[];mcAppData=[];}
+  
+  await translateAll(currentLang);
+  updateStats();
+}
+
+/* ═══════════════════════════════════════════
+   GLOBAL LANGUAGE CONFIGURATION MAP (54 LANGS)
+═══════════════════════════════════════════ */
+const ALL_LANGUAGES = [
+  // CHÂU Á
+  {code:'vi', name:'🇻🇳 Tiếng Việt'}, {code:'en', name:'🇺🇸 English'}, {code:'zh-CN', name:'🇨🇳 简体中文'},
+  {code:'zh-TW', name:'🇨🇳 繁體中文'}, {code:'ja', name:'🇯🇵 日本語'}, {code:'ko', name:'🇰🇷 한국어'},
+  {code:'id', name:'🇮🇩 Bahasa Indonesia'}, {code:'th', name:'🇹🇭 ภาษาไทย'}, {code:'ms', name:'🇲🇾 Bahasa Melayu'},
+  {code:'tl', name:'🇵🇭 Tagalog (Philippines)'}, {code:'km', name:'🇰🇭 ភាសាខ្មែរ'}, {code:'lo', name:'🇱🇦 ພາສາລາວ'},
+  {code:'my', name:'🇲🇲 ဗမာစာ (Burmese)'}, {code:'hi', name:'🇮🇳 हिन्दी (Hindi)'}, {code:'bn', name:'🇧🇩 বাংলা (Bengali)'},
+  {code:'ur', name:'🇵🇰 اردو (Urdu)'}, {code:'ar', name:'🇸🇦 العربية (Arabic)'}, {code:'he', name:'🇮🇱 עברית (Hebrew)'},
+  {code:'tr', name:'🇹🇷 Türkçe'}, {code:'fa', name:'🇮🇷 فارسی (Persian)'},
+  // CHÂU ÂU
+  {code:'fr', name:'🇫🇷 Français'}, {code:'de', name:'🇩🇪 Deutsch'}, {code:'es', name:'🇪🇸 Español'},
+  {code:'it', name:'🇮🇹 Italiano'}, {code:'ru', name:'🇷🇺 Русский'}, {code:'uk', name:'🇺🇦 Українська'},
+  {code:'pt', name:'🇵🇹 Português'}, {code:'nl', name:'🇳🇱 Nederlands'}, {code:'pl', name:'🇵🇱 Polski'},
+  {code:'sv', name:'🇸🇪 Svenska'}, {code:'no', name:'🇳🇴 Norsk'}, {code:'da', name:'🇩🇰 Dansk'},
+  {code:'fi', name:'🇫🇮 Suomi'}, {code:'cs', name:'🇨🇿 Čeština'}, {code:'sk', name:'🇸🇰 Slovenčina'},
+  {code:'hu', name:'🇭🇺 Magyar'}, {code:'ro', name:'🇷🇴 Română'}, {code:'el', name:'🇬🇷 Ελληνικά'},
+  {code:'bg', name:'🇧🇬 Български'}, {code:'hr', name:'🇭🇷 Hrvatski'}, {code:'sr', name:'🇷🇸 Српски'},
+  {code:'lt', name:'🇱🇹 Lietuvių'}, {code:'lv', name:'🇱🇻 Latviešu'}, {code:'et', name:'🇪🇪 Eesti'},
+  {code:'is', name:'🇮🇸 Íslenska'}, {code:'ga', name:'🇮🇪 Gaeilge'},
+  // CHÂU MỸ & KHÁC
+  {code:'en', name:'🇨🇦 English (Canada)'}, {code:'es', name:'🇲🇽 Español (Latinoamérica)'}, 
+  {code:'pt-BR', name:'🇧🇷 Português (Brasil)'}, {code:'sw', name:'🇰🇪 Kiswahili'},
+  {code:'am', name:'🇪🇹 አማርኛ (Amharic)'}, {code:'zu', name:'🇿🇦 isiZulu'}, 
+  {code:'af', name:'🇿🇦 Afrikaans'}, {code:'eo', name:'🌐 Esperanto'}
+];
+
+async function gtranslate(text,target){
+  if(!text||!text.trim()||!isNaN(text))return text;
+  try{
+    const url=`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${target}&dt=t&q=${encodeURIComponent(text)}`;
+    const r=await fetch(url); const d=await r.json();
+    return d[0].map(s=>s[0]).join('');
+  }catch(e){return text;}
+}
+
+async function translateStaticUI(targetLang) {
+  const walker = document.createTreeWalker(
+    document.body,
+    NodeFilter.SHOW_TEXT,
+    {
+      acceptNode: function(node) {
+        if (node.parentElement.tagName === 'SCRIPT' || node.parentElement.tagName === 'STYLE' || node.parentElement.id === 'pCode' || node.parentElement.classList.contains('lang-btn')) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        return node.textContent.trim().length > 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
+    }
+  );
+
+  let node;
+  const nodesToTranslate = [];
+  while (node = walker.nextNode()) {
+    nodesToTranslate.push(node);
+  }
+
+  await Promise.all(nodesToTranslate.map(async (textNode) => {
+    const orig = textNode.parentElement.getAttribute('data-orig-txt') || textNode.textContent.trim();
+    if (!textNode.parentElement.getAttribute('data-orig-txt')) {
+      textNode.parentElement.setAttribute('data-orig-txt', orig);
+    }
+    if (targetLang === 'en') {
+      textNode.textContent = orig;
+    } else {
+      textNode.textContent = await gtranslate(orig, targetLang);
+    }
+  }));
+}
+
+async function translateAll(lang){
+  currentLang = lang;
+  
+  ['R','MC','App'].forEach(id=>{ const el=document.getElementById('trStatus'+id); if(el){el.classList.add('show');} });
+  
+  try {
+    await translateStaticUI(lang);
+  } catch(e) { console.log("Static UI translate error:", e); }
+
+  translatedRoblox=await Promise.all(robloxData.map(async item=>({
+    ...item,
+    title:await gtranslate(item.title,lang),
+    desc:await gtranslate(item.desc,lang)
+  })));
+
+  translatedMC=await Promise.all(mcScriptData.map(async item=>({
+    ...item,
+    title:await gtranslate(item.title,lang),
+    desc:await gtranslate(item.desc,lang)
+  })));
+
+  translatedApp=await Promise.all(mcAppData.map(async item=>({
+    ...item,
+    name:await gtranslate(item.name,lang),
+    desc:await gtranslate(item.desc,lang)
+  })));
+
+  filterR(); filterMC(); filterApp();
+
+  setTimeout(()=>{
+    ['R','MC','App'].forEach(id=>{ const el=document.getElementById('trStatus'+id); if(el){el.classList.remove('show');} });
+  },600);
+}
+
+function updateStats(){
+  const rh=robloxData.filter(i=>i.isHot).length;
+  if(document.getElementById('statsR')) document.getElementById('statsR').innerHTML=`<div class="stat-pill"><div class="stat-led led-o"></div>Total <b>${robloxData.length}</b></div><div class="stat-pill">🔥 Hot <b>${rh}</b></div>`;
+  const mh=mcScriptData.filter(i=>i.isHot).length;
+  if(document.getElementById('statsMC')) document.getElementById('statsMC').innerHTML=`<div class="stat-pill"><div class="stat-led led-g"></div>Total <b>${mcScriptData.length}</b></div><div class="stat-pill">🔥 Hot <b>${mh}</b></div>`;
+  if(document.getElementById('statsApp')) document.getElementById('statsApp').innerHTML=`<div class="stat-pill"><div class="stat-led led-b"></div>Apps <b>${mcAppData.length}</b></div>`;
+}
+
+/* FILTERS MAPPING */
+function filterR(){
+  const q=(document.getElementById('searchR')?.value||'').toLowerCase();
+  const arr=translatedRoblox.filter(i=>(i.title?.toLowerCase().includes(q)||i.desc?.toLowerCase().includes(q))&&(!hotR||i.isHot));
+  renderScripts('containerR',arr,'ROBLOX');
+}
+function filterMC(){
+  const q=(document.getElementById('searchMC')?.value||'').toLowerCase();
+  const arr=translatedMC.filter(i=>(i.title?.toLowerCase().includes(q)||i.desc?.toLowerCase().includes(q))&&(!hotMC||i.isHot));
+  renderScripts('containerMC',arr,'MINECRAFT');
+}
+function filterApp(){
+  const q=(document.getElementById('searchApp')?.value||'').toLowerCase();
+  const arr=translatedApp.filter(i=>i.name?.toLowerCase().includes(q)||i.desc?.toLowerCase().includes(q));
+  renderApps(arr);
+}
+function toggleHotR(){hotR=!hotR;document.getElementById('hotBtnR').classList.toggle('active',hotR);filterR();}
+function toggleHotMC(){hotMC=!hotMC;document.getElementById('hotBtnMC').classList.toggle('active',hotMC);filterMC();}
+function triggerHot(e){e.preventDefault();closeMob();hotR=true;if(document.getElementById('hotBtnR'))document.getElementById('hotBtnR').classList.add('active');filterR();}
+function resetFilters(e){
+  e.preventDefault();closeMob();hotR=false;hotMC=false;
+  document.getElementById('hotBtnR')?.classList.remove('active');
+  document.getElementById('hotBtnMC')?.classList.remove('active');
+  if(document.getElementById('searchR'))document.getElementById('searchR').value='';
+  if(document.getElementById('searchMC'))document.getElementById('searchMC').value='';
+  if(document.getElementById('searchApp'))document.getElementById('searchApp').value='';
+  filterR();filterMC();filterApp();
+}
+
+/* RENDERING MODULES */
+function renderScripts(cid,arr,label){
+  const c=document.getElementById(cid); c.innerHTML='';
+  if(!arr.length){c.innerHTML=`<div class="empty"><div class="empty-icon">🔍</div><p>No scripts found.</p></div>`;return;}
+  arr.forEach((item,i)=>{
+    const el=document.createElement('div'); el.className='scard'; el.style.animationDelay=(i*0.06)+'s';
+    const hasImg=item.img&&item.img.trim();
+    el.innerHTML=`
+    <div class="scard-inner">
+      ${hasImg
+        ?`<div class="scard-img-col">
+            <img src="${item.img}" class="scard-img" alt="${item.title}" onerror="this.parentElement.innerHTML='<div class=\\"no-img-col\\">🎮</div>'">
+            <div class="scard-img-overlay"></div>
+          </div>`
+        :`<div class="scard-img-col no-img-col">${label==='ROBLOX'?'🎮':'⛏️'}</div>`}
+      <div class="scard-body">
+        <div>
+          <div class="scard-badges">
+            <span class="sbadge sbadge-main">${label}</span>
+            ${item.isHot?'<span class="sbadge sbadge-hot">🔥 HOT</span>':''}
+          </div>
+          <div class="scard-title" style="margin-top:8px;">${item.title}</div>
+          <div class="scard-desc" style="margin-top:6px;">${item.desc}</div>
+        </div>
+        <button class="copy-btn" onclick="copyScript(this,\`${btoa(encodeURIComponent(item.code||''))}\`)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy Script
+        </button>
+      </div>
+    </div>`;
+    c.appendChild(el);
+  });
+  if(window.refreshCursorSelectors) window.refreshCursorSelectors();
+}
+
+function renderApps(arr){
+  const c=document.getElementById('containerApp'); c.innerHTML='';
+  if(!arr.length){c.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📦</div><p>No apps found.</p></div>`;return;}
+  arr.forEach((item,i)=>{
+    const el=document.createElement('div'); el.className='acard'; el.style.animationDelay=(i*0.07)+'s';
+    const hasImg=item.img&&item.img.trim();
+    el.innerHTML=`
+    ${hasImg
+      ?`<div class="acard-banner-wrap">
+          <img src="${item.img}" class="acard-banner" alt="${item.name}" onerror="this.parentElement.className='acard-no-img';this.parentElement.innerHTML='📦';">
+          <div class="acard-banner-overlay"></div>
+        </div>`
+      :`<div class="acard-no-img">📦</div>`}
+    <div class="acard-body">
+      ${item.version?`<span class="acard-ver">v${item.version}</span>`:''}
+      <div class="acard-title">${item.name}</div>
+      <p class="acard-desc">${item.desc}</p>
+      <a href="${item.link||'#'}" target="_blank" rel="noopener" class="dl-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download
+      </a>
+    </div>`;
+    c.appendChild(el);
+  });
+  if(window.refreshCursorSelectors) window.refreshCursorSelectors();
+}
+
+function copyScript(btn,b64){
+  const code=decodeURIComponent(atob(b64));
+  navigator.clipboard.writeText(code).then(()=>{
+    btn.classList.add('copied');
+    btn.innerHTML=`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+    setTimeout(()=>{
+      btn.classList.remove('copied');
+      btn.innerHTML=`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Script`;
+    },2000);
+  }).catch(err=>alert('Copy error: '+err));
+}
+
+/* ADMIN INTERFACE LOGINS */
+function openLoginModal(){
+  if(isAdmin){isAdmin=false;document.getElementById('adminControls').style.display='none';document.getElementById('loginBtn').innerText='🔑 Admin';closeModal();return;}
+  modal(`<h2>ADMIN ACCESS</h2><p>Enter credentials to manage content.</p>
+    <div class="adm-fg"><label>EMAIL</label><input type="email" id="liE" placeholder="admin@example.com"></div>
+    <div class="adm-fg"><label>PASSWORD</label><input type="password" id="liP" placeholder="••••••••"></div>
+    <button class="fsb fsb-blue" onclick="doLogin()">🔐 LOGIN</button>
+    <button class="fsb fsb-gray" onclick="closeModal()">CANCEL</button>`);
+}
+function doLogin(){
+  if(document.getElementById('liE').value.trim()==='nkhang00012@gmail.com'&&document.getElementById('liP').value==='Admin'){
+    isAdmin=true; document.getElementById('adminControls').style.display='flex';
+    document.getElementById('loginBtn').innerText='🚪 Logout'; closeModal();
+  }else{alert('❌ Wrong credentials!');}
+}
+
+/* POST MODULES */
+function openPostModal(){
+  modal(`<h2>PUBLISH CONTENT</h2><p>Choose content type and fill in details.</p>
+    <div class="adm-fg"><label>TYPE</label>
+      <select id="pType" onchange="updatePostForm()">
+        <option value="roblox">🎮 Roblox Script</option>
+        <option value="mc-script">⛏️ Minecraft Script</option>
+        <option value="mc-app">📦 Minecraft App</option>
+      </select></div>
+    <div id="dynForm"></div>
+    <button class="fsb fsb-green" id="submitPost" onclick="doPost()">🚀 PUBLISH TO CLOUD</button>
+    <button class="fsb fsb-gray" onclick="closeModal()">CANCEL</button>`);
+  updatePostForm();
+}
+function updatePostForm(){
+  const t=document.getElementById('pType').value;
+  if(t==='mc-app') {
+    document.getElementById('dynForm').innerHTML=`
+      <div class="adm-fg"><label>APP NAME</label><input type="text" id="pName" placeholder="e.g. Lunar Client Premium"></div>
+      <div class="adm-fg"><label>VERSION</label><input type="text" id="pVer" placeholder="e.g. 1.20.4"></div>
+      <div class="adm-fg"><label>UPLOAD IMAGE FILE</label><input type="file" id="pFile" accept="image/*"></div>
+      <div class="form-sep">─── OR ───</div>
+      <div class="adm-fg"><label>IMAGE URL</label><input type="text" id="pImgUrl" placeholder="https://..."></div>
+      <div class="adm-fg"><label>DOWNLOAD LINK</label><input type="text" id="pLink" placeholder="https://..."></div>
+      <div class="adm-fg"><label>DESCRIPTION</label><textarea id="pDesc" rows="3" placeholder="App description..."></textarea></div>`;
+  } else {
+    document.getElementById('dynForm').innerHTML=`
+      <div class="adm-fg"><label>SCRIPT TITLE</label><input type="text" id="pTitle" placeholder="e.g. BONBON HUB V2"></div>
+      <div class="adm-fg" style="display:flex;gap:10px;align-items:center;margin-bottom:14px;">
+        <input type="checkbox" id="pHot" style="width:18px;height:18px;accent-color:var(--orange);">
+        <label for="pHot" style="margin:0;color:#ff6b6b;font-weight:700;font-size:15px;">Mark as HOT 🔥</label>
+      </div>
+      <div class="adm-fg"><label>UPLOAD IMAGE FILE</label><input type="file" id="pFile" accept="image/*"></div>
+      <div class="form-sep">─── OR ───</div>
+      <div class="adm-fg"><label>IMAGE URL</label><input type="text" id="pImgUrl" placeholder="https://..."></div>
+      <div class="adm-fg"><label>DESCRIPTION</label><textarea id="pDesc" rows="3" placeholder="Feature description..."></textarea></div>
+      <div class="adm-fg"><label>SCRIPT CODE (LUA)</label><textarea id="pCode" rows="4" style="font-family:'JetBrains Mono',monospace;color:#ff9966;" placeholder="loadstring(...)()"></textarea></div>`;
+  }
+  if(window.refreshCursorSelectors) window.refreshCursorSelectors();
+}
+
+async function doPost(){
+  const t=document.getElementById('pType').value;
+  const desc=(document.getElementById('pDesc')?.value||'').trim();
+  const btn=document.getElementById('submitPost');
+  btn.innerText='🔄 UPLOADING...'; btn.disabled=true;
+
+  const getImg=()=>new Promise(res=>{
+    const file=document.getElementById('pFile')?.files?.[0];
+    const urlVal=(document.getElementById('pImgUrl')?.value||'').trim();
+    if(file){ const r=new FileReader(); r.onload=e=>res(e.target.result); r.readAsDataURL(file); }
+    else res(urlVal||'');
+  });
+
+  const img=await getImg();
+
+  let url, obj;
+  if(t==='mc-app'){
+    const name=(document.getElementById('pName')?.value||'').trim();
+    const version=(document.getElementById('pVer')?.value||'').trim();
+    const link=(document.getElementById('pLink')?.value||'').trim();
+    if(!name||!desc){alert('Fill required fields!'); btn.innerText='🚀 PUBLISH TO CLOUD'; btn.disabled=false; return;}
+    url=FB_MCAPP; obj={name,version,img,link,desc};
+  }else{
+    const title=(document.getElementById('pTitle')?.value||'').trim();
+    const code=(document.getElementById('pCode')?.value||'').trim();
+    const isHot=document.getElementById('pHot')?.checked||false;
+    if(!title||!desc||!code){alert('Fill required fields!'); btn.innerText='🚀 PUBLISH TO CLOUD'; btn.disabled=false; return;}
+    url=t==='roblox'?FB_ROBLOX:FB_MCSCRIPT;
+    obj={title,img,desc,code,isHot};
+  }
+  const ok=await fbPost(url,obj);
+  if(ok){closeModal(); await loadAll(); alert('✅ Published successfully!');}
+  else{alert('❌ Failed.'); btn.innerText='🚀 PUBLISH TO CLOUD'; btn.disabled=false;}
+}
+
+/* DELETE MANAGEMENT */
+function openDeleteModal(){
+  const opts=[
+    ...robloxData.map(i=>`<option value="roblox:${i.cloudId}">[ROBLOX] ${i.title}</option>`),
+    ...mcScriptData.map(i=>`<option value="mc-script:${i.cloudId}">[MC SCRIPT] ${i.title}</option>`),
+    ...mcAppData.map(i=>`<option value="mc-app:${i.cloudId}">[MC APP] ${i.name}</option>`)
+  ].join('');
+  modal(`<h2 style="color:#ff6b6b">DELETE CONTENT</h2><p>Permanently remove data from cloud.</p>
+    <div class="adm-fg"><label>SELECT ITEM</label><select id="delSel">${opts||'<option value="">(Empty)</option>'}</select></div>
+    <button class="fsb fsb-red" id="delBtn" onclick="doDelete()">🗑️ DELETE FROM CLOUD</button>
+    <button class="fsb fsb-gray" onclick="closeModal()">CANCEL</button>`);
+  if(window.refreshCursorSelectors) window.refreshCursorSelectors();
+}
+async function doDelete(){
+  const val=document.getElementById('delSel').value; if(!val)return;
+  if(!confirm('Permanently delete this item?'))return;
+  const[t,id]=val.split(':');
+  const btn=document.getElementById('delBtn'); btn.innerText='🗑️ DELETING...'; btn.disabled=true;
+  const urlMap={roblox:FB_ROBLOX,'mc-script':FB_MCSCRIPT,'mc-app':FB_MCAPP};
+  const segMap={roblox:'scripts','mc-script':'mc_scripts','mc-app':'mc_apps'};
+  const delUrl=urlMap[t].replace(segMap[t]+'.json',segMap[t]+'/'+id+'.json');
+  const ok=await fbDelete(delUrl);
+  if(ok){closeModal(); await loadAll(); alert('✅ Deleted!');}
+  else{alert('❌ Delete error.');}
+}
+
+/* ═══════════════════════════════════════════
+   SEARCHABLE MODAL ARCHITECTURE FOR 50+ LANGS
+═══════════════════════════════════════════ */
+function showLangModal(){
+  let modalHtml = `
+    <h2>LANGUAGE MATRIX</h2>
+    <p>Select your global interface layer. Supported 54 languages across Asia, Europe and Americas.</p>
+    <div class="lang-search-box">
+      <svg class="lang-search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      <input type="text" id="langSearchInput" oninput="filterLanguages()" placeholder="Search country or language...">
+    </div>
+    <div class="lang-grid-scroll" id="langGridContainer">
+  `;
+  
+  ALL_LANGUAGES.forEach(l => {
+    modalHtml += `<button class="lang-btn" data-lang-name="${l.name.toLowerCase()}" onclick="setLang('${l.code}')">${l.name}</button>`;
+  });
+  
+  modalHtml += `</div><button class="fsb fsb-gray" style="margin-top: 15px;" onclick="closeModal()">CLOSE</button>`;
+  modal(modalHtml);
+}
+
+function filterLanguages() {
+  const query = document.getElementById('langSearchInput').value.toLowerCase();
+  const buttons = document.querySelectorAll('#langGridContainer .lang-btn');
+  buttons.forEach(btn => {
+    const name = btn.getAttribute('data-lang-name');
+    if(name.includes(query)) {
+      btn.style.display = 'flex';
+    } else {
+      btn.style.display = 'none';
+    }
+  });
+}
+
+async function setLang(lang){ closeModal(); await translateAll(lang); }
+
+function switchTab(tab,btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+tab).classList.add('active');
+  closeMob();
+}
+
+function modal(html){document.getElementById('modalContent').innerHTML=html; document.getElementById('globalModal').classList.add('active');}
+function closeModal(){document.getElementById('globalModal').classList.remove('active');}
+document.getElementById('globalModal').addEventListener('click',e=>{if(e.target.id==='globalModal')closeModal();});
+
+function toggleMob(){document.getElementById('navLinks').classList.toggle('mob-open');}
+function closeMob(){document.getElementById('navLinks').classList.remove('mob-open');}
+
+window.onload=function(){
+  showLangModal();
+  loadAll();
+};
+</script>
+</body>
+</html>
